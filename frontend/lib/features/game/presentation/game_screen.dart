@@ -13,15 +13,33 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late StreetFootballGame _game;
   int _currentScore = 0;
   final StorageService _storage = StorageService();
+  late AnimationController _scoreAnimationController;
+  late Animation<double> _scoreScaleAnimation;
 
   @override
   void initState() {
     super.initState();
+    _scoreAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scoreScaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(
+        parent: _scoreAnimationController,
+        curve: Curves.elasticOut,
+      ),
+    );
     _initGame();
+  }
+
+  @override
+  void dispose() {
+    _scoreAnimationController.dispose();
+    super.dispose();
   }
 
   void _initGame() {
@@ -30,6 +48,8 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           _currentScore = score;
         });
+        // Animate score change
+        _scoreAnimationController.forward(from: 0);
       },
       onGameOver: (finalScore) {
         _handleGameOver(finalScore);
@@ -101,36 +121,91 @@ class _GameScreenState extends State<GameScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Score Display
+            // Enhanced Score Display
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              color: GameColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    GameColors.primary,
+                    GameColors.primary.withOpacity(0.8),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(
-                    Icons.sports_soccer,
-                    color: GameColors.goal,
-                    size: 32,
+                  // Defender count
+                  _InfoChip(
+                    icon: Icons.groups,
+                    label: '${_game.currentDefenderCount}',
+                    color: GameColors.defender,
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'SCORE:',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: GameColors.textLight,
+                  
+                  // Score
+                  Expanded(
+                    child: Center(
+                      child: AnimatedBuilder(
+                        animation: _scoreScaleAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _scoreScaleAnimation.value,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.sports_soccer,
+                                  color: GameColors.goal,
+                                  size: 28,
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: GameColors.background,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: GameColors.accent.withOpacity(0.3),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    '$_currentScore',
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: GameColors.accent,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$_currentScore',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: GameColors.accent,
-                    ),
+                  
+                  // Difficulty level
+                  _InfoChip(
+                    icon: Icons.speed,
+                    label: 'Lv${_currentScore + 1}',
+                    color: GameColors.accent,
                   ),
                 ],
               ),
@@ -145,6 +220,45 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: GameColors.background,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color, width: 2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }

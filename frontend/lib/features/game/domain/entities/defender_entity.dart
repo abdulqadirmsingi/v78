@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:flutter/material.dart' hide Image;
+import 'package:flutter/painting.dart';
 import 'package:street_football_rush/core/constants/game_constants.dart';
 import 'package:street_football_rush/core/constants/colors.dart';
 
@@ -38,36 +40,90 @@ class DefenderEntity extends CircleComponent with HasGameRef {
 
   @override
   void render(Canvas canvas) {
+    canvas.save();
+    
     // Choose color based on state
     final color = state == DefenderState.chase
         ? GameColors.defenderChasing
         : GameColors.defender;
 
-    // Draw defender circle
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+    // Draw shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(Offset(2, 2), radius, shadowPaint);
 
-    canvas.drawCircle(Offset.zero, radius, paint);
+    // Draw defender circle with gradient
+    final gradientPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withOpacity(0.7),
+          color,
+        ],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius));
+
+    canvas.drawCircle(Offset.zero, radius, gradientPaint);
+
+    // Draw pulsing glow when chasing
+    if (state == DefenderState.chase) {
+      final glowPaint = Paint()
+        ..color = GameColors.defenderChasing.withOpacity(0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+      
+      canvas.drawCircle(Offset.zero, radius + 3, glowPaint);
+    }
 
     // Draw border
     final borderPaint = Paint()
       ..color = GameColors.fieldLineWhite
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = state == DefenderState.chase ? 3 : 2;
 
     canvas.drawCircle(Offset.zero, radius, borderPaint);
+
+    // Draw inner detail (menacing look)
+    final eyePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    
+    // Eyes
+    canvas.drawCircle(Offset(-radius * 0.3, -radius * 0.2), 3, eyePaint);
+    canvas.drawCircle(Offset(radius * 0.3, -radius * 0.2), 3, eyePaint);
+    
+    // Pupils
+    final pupilPaint = Paint()
+      ..color = state == DefenderState.chase ? Colors.red : Colors.black
+      ..style = PaintingStyle.fill;
+    
+    canvas.drawCircle(Offset(-radius * 0.3, -radius * 0.2), 1.5, pupilPaint);
+    canvas.drawCircle(Offset(radius * 0.3, -radius * 0.2), 1.5, pupilPaint);
 
     // Draw "angry" indicator when chasing
     if (state == DefenderState.chase) {
       final alertPaint = Paint()
-        ..color = GameColors.fieldLineWhite
+        ..color = Colors.red
         ..style = PaintingStyle.fill;
 
-      // Draw exclamation mark
+      // Draw exclamation mark with glow
+      final glowAlertPaint = Paint()
+        ..color = Colors.red.withOpacity(0.5)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+      
+      canvas.drawCircle(Offset(0, -radius - 8), 3, glowAlertPaint);
       canvas.drawCircle(Offset(0, -radius - 8), 2, alertPaint);
-      canvas.drawRect(Rect.fromLTWH(-1, -radius - 18, 2, 8), alertPaint);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(-1.5, -radius - 20, 3, 10),
+          const Radius.circular(1.5),
+        ),
+        alertPaint,
+      );
     }
+    
+    canvas.restore();
   }
 
   @override

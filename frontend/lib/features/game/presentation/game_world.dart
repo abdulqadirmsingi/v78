@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
+import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
@@ -63,7 +64,7 @@ class StreetFootballGame extends FlameGame
 
     // Set camera viewport to match game dimensions
     camera.viewport = FixedResolutionViewport(
-      Vector2(GameConstants.fieldWidth, GameConstants.fieldHeight),
+      resolution: Vector2(GameConstants.fieldWidth, GameConstants.fieldHeight),
     );
 
     // Create field
@@ -237,11 +238,9 @@ class StreetFootballGame extends FlameGame
 
     // Increase defender speed
     currentDefenderSpeed *= GameConstants.difficultySpeedMultiplier;
-
-    // Update existing defenders
-    for (final defender in defenders) {
-      // Defenders will use the new base speed calculation
-    }
+    
+    // Note: Existing defenders continue with their current speed
+    // New defenders will spawn with the updated speed
   }
 
   void _spawnDefenders(int count) {

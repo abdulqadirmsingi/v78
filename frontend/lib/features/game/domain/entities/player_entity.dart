@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:flutter/material.dart' hide Image;
+import 'package:flutter/painting.dart';
 import 'package:street_football_rush/core/constants/game_constants.dart';
 import 'package:street_football_rush/core/constants/colors.dart';
 
@@ -31,37 +33,74 @@ class PlayerEntity extends CircleComponent with HasGameRef {
 
   @override
   void render(Canvas canvas) {
-    // Draw player circle
-    final paint = Paint()
-      ..color = GameColors.player
-      ..style = PaintingStyle.fill;
+    canvas.save();
     
-    canvas.drawCircle(Offset.zero, radius, paint);
+    // Draw shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(Offset(2, 2), radius, shadowPaint);
     
-    // Draw border
+    // Draw player circle with gradient effect
+    final gradientPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          GameColors.player.withOpacity(0.8),
+          GameColors.player,
+        ],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius));
+    
+    canvas.drawCircle(Offset.zero, radius, gradientPaint);
+    
+    // Draw border with glow
     final borderPaint = Paint()
       ..color = GameColors.fieldLineWhite
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 3;
     
     canvas.drawCircle(Offset.zero, radius, borderPaint);
     
-    // Draw direction indicator (small dot)
-    final dotPaint = Paint()
+    // Draw inner highlight
+    final highlightPaint = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(-radius * 0.3, -radius * 0.3), radius * 0.3, highlightPaint);
+    
+    // Draw direction indicator (arrow)
+    final arrowPaint = Paint()
       ..color = GameColors.fieldLineWhite
       ..style = PaintingStyle.fill;
     
-    canvas.drawCircle(Offset(0, -radius * 0.5), 3, dotPaint);
+    final arrowPath = Path()
+      ..moveTo(0, -radius * 0.7)
+      ..lineTo(-5, -radius * 0.4)
+      ..lineTo(5, -radius * 0.4)
+      ..close();
     
-    // Draw speed boost indicator
+    canvas.drawPath(arrowPath, arrowPaint);
+    
+    // Draw speed boost indicator with pulsing effect
     if (hasSpeedBoost) {
+      final pulseRadius = radius + 5 + (speedBoostTimer % 0.5) * 10;
+      
       final boostPaint = Paint()
-        ..color = GameColors.powerUp.withOpacity(0.5)
+        ..color = GameColors.powerUp.withOpacity(0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3;
       
-      canvas.drawCircle(Offset.zero, radius + 5, boostPaint);
+      canvas.drawCircle(Offset.zero, pulseRadius, boostPaint);
+      
+      // Inner ring
+      final innerBoostPaint = Paint()
+        ..color = GameColors.powerUp.withOpacity(0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      
+      canvas.drawCircle(Offset.zero, radius + 2, innerBoostPaint);
     }
+    
+    canvas.restore();
   }
 
   @override

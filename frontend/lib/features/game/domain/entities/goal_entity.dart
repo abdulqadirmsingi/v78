@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:flutter/painting.dart';
 import 'package:street_football_rush/core/constants/game_constants.dart';
 import 'package:street_football_rush/core/constants/colors.dart';
 
