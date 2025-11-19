@@ -4,6 +4,7 @@ class AudioConstants {
   static const String collisionSound = 'audio/collision.mp3';
   static const String clickSound = 'audio/click.mp3';
   static const String powerUpSound = 'audio/powerup.mp3';
+  static const String kickSound = 'audio/kick.mp3';
   static const String backgroundMusic = 'audio/background.mp3';
   
   // Volume levels

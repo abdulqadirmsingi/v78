@@ -10,10 +10,10 @@ import 'package:street_football_rush/features/menu/presentation/splash_screen.da
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock orientation to portrait
+  // Lock orientation to landscape
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
   ]);
 
   // Initialize services
@@ -42,6 +42,7 @@ void main() async {
   // Pre-fetch game config (don't wait for it)
   ConfigService().getConfig().catchError((_) {
     // Silently fail and use defaults
+    return GameConfigModel.defaults();
   });
 
   runApp(const StreetFootballRushApp());
@@ -63,4 +64,3 @@ class StreetFootballRushApp extends StatelessWidget {
     );
   }
 }
-

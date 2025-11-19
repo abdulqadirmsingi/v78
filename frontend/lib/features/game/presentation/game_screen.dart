@@ -15,7 +15,8 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late StreetFootballGame _game;
-  int _currentScore = 0;
+  int _playerScore = 0;
+  int _aiScore = 0;
   final StorageService _storage = StorageService();
   late AnimationController _scoreAnimationController;
   late Animation<double> _scoreScaleAnimation;
@@ -44,9 +45,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _initGame() {
     _game = StreetFootballGame(
-      onScoreChanged: (score) {
+      onScoreChanged: (playerScore, aiScore) {
         setState(() {
-          _currentScore = score;
+          _playerScore = playerScore;
+          _aiScore = aiScore;
         });
         // Animate score change
         _scoreAnimationController.forward(from: 0);
@@ -109,7 +111,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _restartGame() {
     setState(() {
-      _currentScore = 0;
+      _playerScore = 0;
+      _aiScore = 0;
       _game.resetGame();
     });
   }
@@ -145,14 +148,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Defender count
-                  _InfoChip(
-                    icon: Icons.groups,
-                    label: '${_game.currentDefenderCount}',
-                    color: GameColors.defender,
+                  // Player Team (Blue)
+                  _TeamScore(
+                    teamName: 'PLAYER',
+                    score: _playerScore,
+                    color: Colors.blue,
+                    icon: Icons.person,
                   ),
                   
-                  // Score
+                  // Score Display
                   Expanded(
                     child: Center(
                       child: AnimatedBuilder(
@@ -160,40 +164,53 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         builder: (context, child) {
                           return Transform.scale(
                             scale: _scoreScaleAnimation.value,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.sports_soccer,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: GameColors.background,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
                                   color: GameColors.goal,
-                                  size: 28,
+                                  width: 2,
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: GameColors.goal.withOpacity(0.3),
+                                    blurRadius: 10,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: GameColors.background,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: GameColors.accent.withOpacity(0.3),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    '$_currentScore',
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '$_playerScore',
                                     style: const TextStyle(
-                                      fontSize: 32,
+                                      fontSize: 36,
                                       fontWeight: FontWeight.bold,
-                                      color: GameColors.accent,
+                                      color: Colors.blue,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 12),
+                                  const Icon(
+                                    Icons.sports_soccer,
+                                    color: GameColors.goal,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    '$_aiScore',
+                                    style: const TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -201,11 +218,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   
-                  // Difficulty level
-                  _InfoChip(
-                    icon: Icons.speed,
-                    label: 'Lv${_currentScore + 1}',
-                    color: GameColors.accent,
+                  // AI Team (Red)
+                  _TeamScore(
+                    teamName: 'AI',
+                    score: _aiScore,
+                    color: Colors.red,
+                    icon: Icons.smart_toy,
                   ),
                 ],
               ),
@@ -225,37 +243,53 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
+class _TeamScore extends StatelessWidget {
+  final String teamName;
+  final int score;
   final Color color;
+  final IconData icon;
 
-  const _InfoChip({
-    required this.icon,
-    required this.label,
+  const _TeamScore({
+    required this.teamName,
+    required this.score,
     required this.color,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: GameColors.background,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color, width: 2),
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 4),
+              Text(
+                teamName,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
           Text(
-            label,
+            '$score',
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 20,
             ),
           ),
         ],

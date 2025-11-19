@@ -4,17 +4,15 @@ import 'package:street_football_rush/core/constants/api_constants.dart';
 import 'package:street_football_rush/core/constants/game_constants.dart';
 
 class GameConfigModel {
-  final int initialDefenders;
-  final double defenderSpeedBase;
-  final double defenderSpeedIncrement;
+  final int playersPerTeam;
+  final double aiPlayerSpeedBase;
   final double playerSpeed;
   final int fieldWidth;
   final int fieldHeight;
 
   GameConfigModel({
-    required this.initialDefenders,
-    required this.defenderSpeedBase,
-    required this.defenderSpeedIncrement,
+    required this.playersPerTeam,
+    required this.aiPlayerSpeedBase,
     required this.playerSpeed,
     required this.fieldWidth,
     required this.fieldHeight,
@@ -22,22 +20,19 @@ class GameConfigModel {
 
   factory GameConfigModel.fromJson(Map<String, dynamic> json) {
     return GameConfigModel(
-      initialDefenders: json['initial_defenders'] as int,
-      defenderSpeedBase: (json['defender_speed_base'] as num).toDouble(),
-      defenderSpeedIncrement:
-          (json['defender_speed_increment'] as num).toDouble(),
-      playerSpeed: (json['player_speed'] as num).toDouble(),
-      fieldWidth: json['field_width'] as int,
-      fieldHeight: json['field_height'] as int,
+      playersPerTeam: json['players_per_team'] as int? ?? GameConstants.playersPerTeam,
+      aiPlayerSpeedBase: (json['ai_player_speed_base'] as num?)?.toDouble() ?? GameConstants.aiPlayerSpeedBase,
+      playerSpeed: (json['player_speed'] as num?)?.toDouble() ?? GameConstants.playerSpeed,
+      fieldWidth: json['field_width'] as int? ?? GameConstants.fieldWidth.toInt(),
+      fieldHeight: json['field_height'] as int? ?? GameConstants.fieldHeight.toInt(),
     );
   }
 
   /// Get default config from constants
   factory GameConfigModel.defaults() {
     return GameConfigModel(
-      initialDefenders: GameConstants.initialDefenders,
-      defenderSpeedBase: GameConstants.defenderSpeedBase,
-      defenderSpeedIncrement: GameConstants.defenderSpeedIncrement,
+      playersPerTeam: GameConstants.playersPerTeam,
+      aiPlayerSpeedBase: GameConstants.aiPlayerSpeedBase,
       playerSpeed: GameConstants.playerSpeed,
       fieldWidth: GameConstants.fieldWidth.toInt(),
       fieldHeight: GameConstants.fieldHeight.toInt(),
