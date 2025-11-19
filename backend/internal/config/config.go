@@ -7,9 +7,10 @@ import (
 
 // Config holds application configuration
 type Config struct {
-	Server ServerConfig
-	Game   GameConfig
-	CORS   CORSConfig
+	Server   ServerConfig
+	Game     GameConfig
+	CORS     CORSConfig
+	Database DatabaseConfig
 }
 
 // ServerConfig holds server-specific configuration
@@ -34,6 +35,16 @@ type CORSConfig struct {
 	Origins string
 }
 
+// DatabaseConfig holds database configuration
+type DatabaseConfig struct {
+	Type     string // "memory" or "mysql"
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Database string
+}
+
 // Load reads configuration from environment variables
 func Load() *Config {
 	return &Config{
@@ -52,6 +63,14 @@ func Load() *Config {
 		},
 		CORS: CORSConfig{
 			Origins: getEnv("CORS_ORIGINS", "*"),
+		},
+		Database: DatabaseConfig{
+			Type:     getEnv("DB_TYPE", "memory"),
+			Host:     getEnv("DB_HOST", "localhost"),
+			Port:     getEnv("DB_PORT", "3306"),
+			User:     getEnv("DB_USER", "root"),
+			Password: getEnv("DB_PASSWORD", ""),
+			Database: getEnv("DB_NAME", "street_football_rush"),
 		},
 	}
 }
